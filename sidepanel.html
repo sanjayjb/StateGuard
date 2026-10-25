@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StateGuard Side Panel</title>
+  <link rel="stylesheet" href="src/ui/styles/main.css" />
+  <style>
+    /* Side Panel Specific Compact Layout Overrides */
+    .main-layout {
+      grid-template-columns: 1fr;
+      grid-template-rows: 1fr auto;
+    }
+    .inspector-panel {
+      max-height: 280px;
+      border-left: none;
+      border-top: 1px solid var(--border-glass);
+    }
+  </style>
+</head>
+<body>
+  <div class="stateguard-app">
+    <header class="app-header">
+      <div class="brand-section">
+        <div class="brand-logo" style="width: 26px; height: 26px; font-size: 13px;">🛡️</div>
+        <div>
+          <div class="brand-title" style="font-size: 14px;">StateGuard</div>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <div class="quota-hud" style="padding: 4px 8px; font-size: 11px;">
+          <span id="quotaUsedPill" class="quota-pill">0/20</span>
+          <span id="tierBadge" class="tier-badge tier-free">FREE</span>
+        </div>
+        <button id="nodesCheckpointsViewBtn" class="btn btn-secondary btn-sm" style="padding: 2px 6px; font-size: 10px;" title="View Nodes & Checkpoints">🗂️ View</button>
+        <button id="upgradeProBtn" class="btn btn-secondary btn-sm" style="padding: 2px 6px; font-size: 10px;">⭐ Pro</button>
+      </div>
+    </header>
+
+    <div class="main-layout">
+      <section class="tree-panel">
+        <div class="tree-toolbar">
+          <div class="branch-selector">
+            <div id="branchSelector"></div>
+          </div>
+          <button id="runSweepBtn" class="btn btn-primary btn-sm" style="font-size: 11px; padding: 4px 8px;">
+            ⚡ Sweep
+          </button>
+        </div>
+        <div id="treeCanvas" class="tree-canvas-scroll"></div>
+      </section>
+
+      <aside class="inspector-panel">
+        <div class="panel-header">
+          <div class="panel-title" style="font-size: 12px;">🔍 Turn Details</div>
+          <div style="display: flex; gap: 4px;">
+            <select id="ttlSelect" class="form-input" style="padding: 2px 4px; font-size: 10px;">
+              <option value="24h" selected>TTL 24h</option>
+              <option value="session">TTL Session</option>
+              <option value="1h">TTL 1h</option>
+            </select>
+          </div>
+        </div>
+        <div id="inspectorContent"></div>
+        <div id="sweepCardContainer" style="padding: 10px;"></div>
+      </aside>
+    </div>
+
+    <footer class="console-dock" style="padding: 10px 14px;">
+      <div class="dock-actions">
+        <button id="quickCheckpointBtn" class="btn btn-emerald btn-sm" style="font-size: 11px;">
+          ★ Snapshot
+        </button>
+        <div style="font-size: 11px; color: var(--text-dim);">
+          <span style="color: var(--accent-cyan);">gemini-3.8-flash</span>
+        </div>
+      </div>
+      <div class="input-row">
+        <textarea
+          id="promptInput"
+          class="prompt-input"
+          style="height: 40px; font-size: 13px;"
+          placeholder="New turn... (Press Enter)"
+        ></textarea>
+        <button id="sendPromptBtn" class="btn btn-primary btn-sm">
+          Commit
+        </button>
+      </div>
+    </footer>
+  </div>
+
+  <div id="licenseModal" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-title" style="font-size: 15px;">⭐ Upgrade to StateGuard Pro</div>
+      <div class="modal-body">
+        <div class="modal-upgrade-banner" style="padding: 10px 12px; font-size: 12px;">
+          <span class="banner-icon">🛡️</span>
+          <div id="upgradeModalMessage" class="banner-text">
+            Unlock automated Gemini 3.8 Flash drift analysis and continuous validation with StateGuard Pro.
+          </div>
+        </div>
+
+        <div class="modal-tier-comparison" style="grid-template-columns: 1fr; gap: 8px;">
+          <div class="tier-card-mini" style="padding: 8px 10px;">
+            <div class="tier-card-title">
+              <span>Free Users</span>
+              <span class="tier-badge tier-free">FREE</span>
+            </div>
+            <ul class="tier-card-list">
+              <li><span class="tick-icon">✓</span> Manually inspect nodes & lineage</li>
+              <li><span class="tick-icon">✓</span> Up to 20 snapshot checkpoints</li>
+              <li><span class="tick-icon">✓</span> Manually roll back when spotting mistakes</li>
+            </ul>
+          </div>
+
+          <div class="tier-card-mini pro" style="padding: 8px 10px;">
+            <div class="tier-card-title">
+              <span style="color: var(--accent-amber)">Pro Users</span>
+              <span class="tier-badge tier-pro">PRO</span>
+            </div>
+            <ul class="tier-card-list">
+              <li><span class="pro-star">★</span> <strong>Automated AI background reasoning</strong></li>
+              <li><span class="pro-star">★</span> <strong>Gemini 3.8 Flash drift analysis</strong></li>
+              <li><span class="pro-star">★</span> Continuous validation on every turn</li>
+              <li><span class="pro-star">★</span> Unlimited manual control & branches</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 8px;">
+          <input id="licenseKeyInput" type="text" class="form-input" placeholder="SG-PRO-UNLIMITED-TEST" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary close-modal-btn">Cancel</button>
+        <button id="activateLicenseBtn" class="btn btn-primary">Activate</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nodes & Checkpoints Explorer Modal -->
+  <div id="nodesCheckpointsModal" class="modal-overlay">
+    <div class="modal-dialog modal-large" style="width: 95%; max-height: 80vh;">
+      <div class="modal-title" style="font-size: 14px;">
+        <span>🗂️</span> Available Nodes & Checkpoints
+      </div>
+      <div class="modal-body" style="display: flex; flex-direction: column; flex: 1; overflow: hidden; margin: 8px 0;">
+        <div class="explorer-tabs" style="padding-bottom: 6px; margin-bottom: 8px;">
+          <button id="explorerTabCheckpoints" class="explorer-tab-btn active" style="font-size: 11px; padding: 4px 8px;">
+            ★ Checkpoints <span id="explorerCheckpointBadge" class="explorer-badge">0</span>
+          </button>
+          <button id="explorerTabNodes" class="explorer-tab-btn" style="font-size: 11px; padding: 4px 8px;">
+            ● All Nodes <span id="explorerNodeBadge" class="explorer-badge">0</span>
+          </button>
+        </div>
+
+        <div class="explorer-search-bar" style="margin-bottom: 8px;">
+          <input
+            id="explorerSearchInput"
+            type="text"
+            class="form-input"
+            style="width: 100%; font-size: 11px; padding: 6px 8px;"
+            placeholder="Search nodes & checkpoints..."
+          />
+        </div>
+
+        <div id="explorerItemsList" class="explorer-items-list" style="max-height: 280px;">
+          <!-- Dynamically populated in app.ts -->
+        </div>
+      </div>
+      <div class="modal-footer" style="margin-top: 10px;">
+        <button class="btn btn-secondary close-modal-btn" style="font-size: 11px; padding: 4px 10px;">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="src/ui/app.ts"></script>
+</body>
+</html>

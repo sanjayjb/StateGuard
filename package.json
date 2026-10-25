@@ -1,0 +1,39 @@
+{
+  "name": "stateguard-extension",
+  "version": "1.0.0",
+  "description": "User-Facing AI Console Skill & Extension: Visual Git-style tree branching, checkpoints, rollbacks, and Gemini 3.8 Flash automated validation sweeps.",
+  "type": "module",
+  "bin": {
+    "stateguard": "./dist/cli.js"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build:cli": "esbuild src/cli.ts --bundle --platform=node --format=esm --outfile=dist/cli.js --packages=external && chmod +x dist/cli.js",
+    "build": "vite build && npm run build:cli && cp manifest.json dist/ && cp -r icons dist/",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "keywords": [
+    "ai",
+    "stateguard",
+    "git-tree",
+    "branching",
+    "checkpoints",
+    "gemini",
+    "validation-sweeps",
+    "anti-hallucination"
+  ],
+  "author": "StateGuard Team",
+  "license": "SEE LICENSE IN legal/EULA.md",
+  "dependencies": {
+    "@google/genai": "^2.3.0"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.3.6",
+    "@types/node": "^26.6.5",
+    "happy-dom": "^21.0.4",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.11",
+    "vitest": "^1.6.0"
+  }
+}
